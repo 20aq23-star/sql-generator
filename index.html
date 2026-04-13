@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SQL-Gen AI | مولد استعلامات SQL الذكي</title>
+    <title>SQL-Gen AI | مولد استعلامات SQL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
@@ -19,7 +19,6 @@
             <div class="hidden md:flex space-x-6 space-x-reverse text-sm font-medium">
                 <a href="#tool" class="hover:text-blue-600 transition">الأداة</a>
                 <a href="#articles" class="hover:text-blue-600 transition">تعليم SQL</a>
-                <a href="#about" class="hover:text-blue-600 transition">من نحن</a>
             </div>
         </div>
     </nav>
@@ -31,7 +30,7 @@
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl border border-slate-100">
                 <textarea id="promptInput" rows="4" 
                     class="w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none text-lg text-right" 
-                    placeholder="مثال: عرض كل المستخدمين من جدول Users..."></textarea>
+                    placeholder="مثال: عرض كل الموظفين في قسم المبيعات..."></textarea>
                 
                 <button onclick="generateSQL()" id="mainBtn" 
                     class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex justify-center items-center gap-2">
@@ -51,24 +50,7 @@
         </div>
     </section>
 
-    <section id="articles" class="py-16 bg-white border-y border-slate-100">
-        <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-8 text-right">
-            <article class="p-6 rounded-2xl border border-slate-100">
-                <h4 class="font-bold text-xl mb-3 text-blue-600">أساسيات SQL</h4>
-                <p class="text-slate-600 text-sm">تعلم لغة الاستعلامات البنيوية لإدارة قواعد البيانات باحترافية.</p>
-            </article>
-            <article class="p-6 rounded-2xl border border-slate-100">
-                <h4 class="font-bold text-xl mb-3 text-blue-600">أوامر التصفية</h4>
-                <p class="text-slate-600 text-sm">استخدام WHERE و SELECT لاستخراج البيانات المطلوبة بدقة.</p>
-            </article>
-            <article class="p-6 rounded-2xl border border-slate-100">
-                <h4 class="font-bold text-xl mb-3 text-blue-600">الربط المتقدم</h4>
-                <p class="text-slate-600 text-sm">دمج البيانات من جداول متعددة باستخدام أنواع الـ JOIN المختلفة.</p>
-            </article>
-        </div>
-    </section>
-
-    <footer id="about" class="bg-slate-900 text-slate-400 py-12 text-center">
+    <footer class="bg-slate-900 text-slate-400 py-12 text-center">
         <p class="text-sm">© 2026 جميع الحقوق محفوظة | تطوير عبد الخالق</p>
     </footer>
 
@@ -80,21 +62,21 @@
             const resultArea = document.getElementById('resultArea');
             const output = document.getElementById('sqlOutput');
             
-            // مفتاحك الجديد الذي أنشأته للمشروع
+            // مفتاحك الجديد
             const API_KEY = "AIzaSyDjz5yBw89IZJQXVQYGiit5tcdw3ZjWxBA"; 
 
             if (!prompt) { alert("اكتب وصفاً للاستعلام أولاً"); return; }
 
-            btnText.innerText = "جاري الاتصال بـ Gemini...";
+            btnText.innerText = "جاري الاتصال بـ Gemini AI...";
             btn.disabled = true;
 
             try {
-                // استخدام رابط v1beta مع الموديل الأحدث لضمان استقرار الخدمة
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`, {
+                // التغيير الحاسم: استخدام v1 بدلاً من v1beta وموديل gemini-1.5-flash الصافي
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: "Write only the SQL code for this request without any explanation: " + prompt }] }]
+                        contents: [{ parts: [{ text: "Write ONLY the SQL code for: " + prompt }] }]
                     })
                 });
 
@@ -106,17 +88,14 @@
 
                 if (data.candidates && data.candidates[0].content) {
                     let res = data.candidates[0].content.parts[0].text;
-                    // تنظيف النص من علامات markdown إن وجدت
                     output.innerText = res.replace(/```sql|```/g, "").trim();
                     resultArea.classList.remove('hidden');
                     btnText.innerText = "توليد كود آخر ✨";
                     resultArea.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                    throw new Error("لم يتم استلام كود صالح من الخادم.");
                 }
             } catch (err) {
                 console.error(err);
-                alert("فشل في توليد الكود: " + err.message);
+                alert("حدث خطأ تقني: " + err.message);
             } finally {
                 btn.disabled = false;
                 if(btnText.innerText !== "توليد كود آخر ✨") btnText.innerText = "توليد الكود الآن ✨";
@@ -126,7 +105,7 @@
         function copyCode() {
             const code = document.getElementById('sqlOutput').innerText;
             if(!code) return;
-            navigator.clipboard.writeText(code).then(() => alert("تم نسخ الكود بنجاح!"));
+            navigator.clipboard.writeText(code).then(() => alert("تم نسخ الكود!"));
         }
     </script>
 </body>
