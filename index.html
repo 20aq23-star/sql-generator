@@ -72,8 +72,8 @@
             btn.disabled = true;
 
             try {
-                // التعديل: استخدام v1 مع تحديد الموديل بدقة gemini-1.5-flash
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                // المحاولة الأولى باستخدام v1beta مباشرة لتجنب خطأ الموديل غير الموجود
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -86,9 +86,7 @@
                 const data = await response.json();
 
                 if (data.error) {
-                    // إذا فشل v1، سنحاول تلقائياً استخدام v1beta كخطة بديلة (Fallback)
-                    console.warn("V1 failed, trying v1beta...");
-                    return tryV1Beta(promptInput.value, API_KEY);
+                    throw new Error(data.error.message);
                 }
 
                 if (data.candidates && data.candidates[0].content) {
@@ -100,31 +98,6 @@
             } catch (err) {
                 console.error(err);
                 alert("خطأ: " + err.message);
-                btnText.innerText = "توليد الكود الآن ✨";
-                btn.disabled = false;
-            }
-        }
-
-        // دالة احتياطية في حال فشل الإصدار الأول
-        async function tryV1Beta(prompt, key) {
-            const btnText = document.getElementById('btnText');
-            const btn = document.getElementById('mainBtn');
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: "SQL code only: " + prompt }] }]
-                    })
-                });
-                const data = await response.json();
-                if (data.candidates) {
-                    displayResult(data.candidates[0].content.parts[0].text);
-                } else {
-                    throw new Error(data.error ? data.error.message : "خطأ غير معروف");
-                }
-            } catch (e) {
-                alert("عذراً، الموديل غير متاح حالياً في منطقتك أو المفتاح غير صالح: " + e.message);
                 btnText.innerText = "توليد الكود الآن ✨";
                 btn.disabled = false;
             }
